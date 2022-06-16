@@ -10,7 +10,7 @@ name "Policyfile_Mayur"
 default_source :supermarket
 
 # run_list: chef-client will run these recipes in the order specified.
-run_list "Policyfile_Mayur::default"
+run_list "assignment1::default"
 
-# Specify a custom source for a single cookbook:
-# cookbook "example_cookbook", path: "../cookbooks/example_cookbook"
+# Specify a custom source for a single cookbook
+cookbook 'assignment1', '~> 0.1.0', git: 'git@github.com:mayurkapurkar/onboarding-assignment.git', branch: 'master'
