@@ -1,9 +1,9 @@
 name 'assignment1'
-maintainer 'The Authors'
-maintainer_email 'you@example.com'
+maintainer 'Mayur Kapurkar'
+maintainer_email 'mayur.kapurkar@coupa.com'
 license 'all_rights'
-description 'Installs/Configures assignment1'
-long_description 'Installs/Configures assignment1'
+description 'Installs/Configures - onboarding assignment step 1'
+long_description 'nstalls/Configures - onboarding assignment step 1'
 version '0.1.0'
 
 # If you upload to Supermarket you should set this so your cookbook
