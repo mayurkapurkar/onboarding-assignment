@@ -1,0 +1,43 @@
+{
+  "revision_id": "209ddcb3076b596cf5309c8dffccba1f4a0b569c9ddf86a3aca055f31d9e6a51",
+  "name": "Policyfile_Mayur",
+  "run_list": [
+    "recipe[assignment1::default]"
+  ],
+  "included_policy_locks": [
+
+  ],
+  "cookbook_locks": {
+    "assignment1": {
+      "version": "0.1.0",
+      "identifier": "36128dbafda442a0a1ae74b34779937fef67ab18",
+      "dotted_decimal_identifier": "15220048679248962.45213766927992697.162177686678296",
+      "cache_key": "assignment1-1897a4abd017814838c24c046f1c88a2825024f9",
+      "origin": "git@github.com:mayurkapurkar/onboarding-assignment.git",
+      "source_options": {
+        "git": "git@github.com:mayurkapurkar/onboarding-assignment.git",
+        "revision": "1897a4abd017814838c24c046f1c88a2825024f9",
+        "branch": "master"
+      }
+    }
+  },
+  "default_attributes": {
+
+  },
+  "override_attributes": {
+
+  },
+  "solution_dependencies": {
+    "Policyfile": [
+      [
+        "assignment1",
+        "~> 0.1.0"
+      ]
+    ],
+    "dependencies": {
+      "assignment1 (0.1.0)": [
+
+      ]
+    }
+  }
+}
