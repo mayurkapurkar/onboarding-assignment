@@ -1,2 +1,2 @@
-default['assignment']['step1']['lamp1'] = 3000
-default['assignment']['step1']['lamp2'] = 3001
+default["apache"]["sites"]["site1"] = {"port" => 3001}
+default["apache"]["sites"]["site2"] = {"port" => 3002}

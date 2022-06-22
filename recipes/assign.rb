@@ -19,28 +19,28 @@ service 'mysqld' do
     action [:start,:enable]
 end
 
-node['assignment']['step1'].each do |site, port|
-  root_directory = "/var/www/mayur/#[site]"
-  template "/etc/httpd/mayur/conf.d/#[site].conf" do
+node["apache"]["sites"].each do |site, port_data|
+  root_directory = "/var/www/mayur/#{site}"
+  template "/etc/httpd/mayur/conf.d/#{site}.conf" do
     source "sites.erb"
     mode "0644"
-    variables (
-      :root_directory=>root_directory,
-      :port=>port
+    variables(
+      :root_directory => root_directory,
+      :port => port_data["port"]
     )
-    notifies: restart, "service[httpd]"
+    notifies :restart, "service[httpd]"
     end
   directory root_directory do 
     mode "0644"
     recursive true
   end
 
-  template "#[root_directory]/index.html" do
+  template "#{root_directory}/index.html" do
     source "app.html.erb"
     mode "0644"
     variables(
       :site => site,
-      :port => port
+      :port => port_data["port"]
     )
   end
 end
