@@ -19,7 +19,7 @@ service 'mysqld' do
     action [:start,:enable]
 end
 
-node["apache"]["sites"].each do |site, port_data|
+node['apache']['sites'].each do |site, port_data|
   root_directory = "/var/www/mayur/#{site}"
   template "/etc/httpd/mayur/conf.d/#{site}.conf" do
     source "sites.erb"
