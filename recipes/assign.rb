@@ -18,6 +18,7 @@ service 'httpd' do
 service 'mysqld' do
     action [:start,:enable]
 end
+<<<<<<< HEAD
 template '/opt/coupa/bin/export_sanitized_backup.rb' do
   owner 'root'
   group 'deploy'
@@ -29,6 +30,10 @@ template '/opt/coupa/bin/export_sanitized_backup.rb' do
   )
 end
 node["apache"]["sites"].each do |site, port_data|
+=======
+
+node['apache']['sites'].each do |site, port_data|
+>>>>>>> 9404fed573d043346fe2a95dc5a1a415edda2bdf
   root_directory = "/var/www/mayur/#{site}"
   template "/etc/httpd/mayur/conf.d/#{site}.conf" do
     source "sites.erb"
