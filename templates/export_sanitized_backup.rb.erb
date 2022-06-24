@@ -1,0 +1,105 @@
+#!/opt/ruby/bin/ruby
+require 'optparse'
+require 'coupa_resource'
+require '/var/spool/cloud/coupa-data'
+require 'json'
+require 'statsd-instrument'
+
+module Coupa
+  module ExportSanitizedBackup
+
+    def trace_clone(customer, deployment, identifier, options = {})
+      StatsD.backend = StatsD::Instrument::Backends::UDPBackend.new('localhost:8125', :statsd)
+      options[:status] ||= 'success'
+
+      tags = { customer: customer, deployment: deployment }
+      tags[:error_identifier] = identifier
+      tags[:region] = ENV['CLOUD_REGION']
+      tags.merge!(options)
+      tag_string = tags.map { |k, v| "#{k}=#{v}" }.join(',')
+      StatsD.measure("clone_stats,#{tag_string}", Random.new_seed)
+    end
+
+    def setup_database(instance,customer_name, container_ip, credential_opts, opts={})
+      database = Coupa::Resource::Database::Instance.new(instance.name, { database_path: "/mnt/db/#{customer_name}/mysql",
+                                                                          deployment: opts[:deployment],
+                                                                          host: container_ip
+                                                                        })
+      puts "[Info] Start sanitizing instance db #{database.name} "
+      database.sanitize(instance.current_path, opts[:backup_type])
+      database.export_ddl(instance.current_path, opts[:timestamp], credential_opts)
+      database.export_table_formats(instance.current_path, opts[:timestamp], credential_opts)
+      database.flush_tables
+      return database
+    end
+
+    def perform_database_export(current_server,customer_name, instance, options, credential_opts = {})
+      timestamp = Time.now.utc.strftime('%Y%m%d%H%M%S')
+      container = current_server.start_mysql_container(customer_name, "percona:#{options[:mysql_version]}")
+
+      if container && container.ip
+        instance.code_setup(container.ip, credential_opts)
+        database = setup_database(instance,customer_name, container.ip, credential_opts, options.merge(timestamp: timestamp))
+        database.archive( instance.lineage,
+                          "#{instance.metadata[:revision]}-#{options[:mysql_version].split('-').first}",
+                          timestamp,
+                          credential_opts.merge({ metadata: { backup_type: options[:backup_type], source: 'capistrano', repo_type: instance.metadata[:repo_type] }})
+                        )
+        puts "[Info] Database #{database.name} archived to S3. Start removing container"
+        container.stop_and_remove
+        instance.cleanup
+      end
+    rescue => e
+      trace_clone(options[:instance], options[:deployment], 'DBSanitize', { status: 'fail' })
+      puts "[Error] Unable to perform database export... Exiting with cleanup tasks. #{e.message}"
+      container.try(:stop_and_remove)
+      instance.cleanup
+      raise e
+    end
+
+    def run(current_server, instance, options, credential_opts = {})
+      customer_name = instance.name.split('.').first.gsub('-', '_')
+      current_server.create_and_attach_latest_volume(instance.lineage, customer_name, credential_opts)
+      perform_database_export(current_server,customer_name, instance, options, credential_opts)
+      current_server.detach_and_delete_volume(customer_name, credential_opts)
+      trace_clone(options[:instance], options[:deployment], 'SanitizeComplete')
+
+    rescue VolumeError, MultiStripVolumeError, MaxVolumeAttachedError, VolumeAlreadyAttachedError => e
+      trace_clone(options[:instance], options[:deployment], e.class, { status: 'fail' })
+      puts "[Error] Exiting without any cleanup."
+      raise e
+    rescue => e
+      trace_clone(options[:instance], options[:deployment], e.class, { status: 'fail' })
+      puts "[Info] Performing clean-up activity"
+      current_server.detach_and_delete_volume(customer_name, credential_opts)
+      puts "[Info] Completed with clean-up activities"
+      raise e
+    end
+
+  end
+end
+
+if $PROGRAM_NAME == __FILE__
+  include Coupa::ExportSanitizedBackup
+
+  options = { region: ENV['CLOUD_REGION'], backup_type: 'clone' }
+  OptionParser.new do |opts|
+    opts.on('-i', '--instance INSTANCE', 'Instance name to export') { |i| options[:instance] = i }
+    opts.on('-d', '--deployment DEPLOYMENT', 'Deployment name of instance') { |d| options[:deployment] = d }
+    opts.on('-t', '--type TYPE', 'Type of Backup to be created. [clone, identical]. DEFAULT is clone') { |t| options[:backup_type] = t }
+    opts.on('-m', '--mysql_version MYSQL_VERSION', 'MySQL Version') { |m| options[:mysql_version] = m }
+  end.parse!
+  fail('Please specify correct input params as part of command line.') if options[:instance].nil? || options[:deployment].nil? || options[:mysql_version].nil?
+
+  mount_path = "<%= @mount_path %>"
+  owner_id = "<%= @owner_id %>"
+  secret_mount_path = "#{mount_path}/creds/application_storage"
+  databag = "#{mount_path}_#{owner_id}"
+  databag_item = 'ec2storage'
+
+  creds = JSON.parse(`sudo /opt/coupa/bin/infra_vault_viewer.rb -s #{secret_mount_path} -d #{databag} -i #{databag_item} -f`).symbolize_keys!
+  puts `/opt/coupa/bin/docker_container_cleanup.rb`
+  instance = Coupa::Resource::Customer::Instance.new(options[:instance], options[:deployment], { region: options[:region] })
+  current_server = Coupa::CloudResource::ServerApi.new_instance(creds)
+  run(current_server, instance, options, creds)
+end
