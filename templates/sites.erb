@@ -54,7 +54,7 @@ Listen <%=@port %>
 # Example:
 # LoadModule foo_module modules/mod_foo.so
 #
-#Include conf.modules.d/*.conf
+Include conf.modules.d/*.conf
 
 #
 # If you wish httpd to run as a different user or group, you must run
@@ -360,7 +360,7 @@ EnableSendfile on
 # Supplemental configuration
 #
 # Load config files in the "/etc/httpd/conf.d" directory, if any.
-IncludeOptional conf.d/*.conf
+# IncludeOptional conf.d/*.conf
 <VirtualHost *:<%=@port%>>
 ServerAdmin mayur.kapurkar@coupa.com
 ServerName mayur-<%=@site%>.com
