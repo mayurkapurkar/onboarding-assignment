@@ -27,6 +27,7 @@ node['apache']['sites'].each do |site, port_data|
     variables(
       :root_directory => root_directory,
       :port => port_data["port"]
+      :site => site
     )
     notifies :restart, "service[httpd]"
     end
