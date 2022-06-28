@@ -14,27 +14,27 @@
         Order allow,deny
         allow from all
     </Directory>
-DocumentRoot /var/www/mayur
+DocumentRoot /var/www/mayur/<%=@site%>
 </VirtualHost>
 <IfModule dir_module>
     DirectoryIndex index.html
 </IfModule>
 # DirectoryIndex index.html index.cgi index.pl index.php index.xhtml
-DocumentRoot "/var/www/mayur"
+DocumentRoot "/var/www/mayur/<%=@site%>"
 User apache
 Group apache
 
 #
 # Relax access to content within /var/www.
 #
-<Directory "/var/www">
+<Directory "/var/www/mayur">
     AllowOverride None
     # Allow open access:
     Require all granted
 </Directory>
 
 # Further relax access to the default document root:
-<Directory "/var/www/mayur">
+<Directory "/var/www/mayur/<%=@site%>">
     #
     # Possible values for the Options directive are "None", "All",
     # or any combination of:
