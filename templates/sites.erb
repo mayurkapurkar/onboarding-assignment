@@ -3,6 +3,7 @@
 <% end -%>
 <VirtualHost *:<%= @port %>>
     ServerAdmin webmaster@localhost
+    ServerName <%=@site%>
   DocumentRoot <%= @root_directory %>
     <Directory />
         Options FollowSymLinks
