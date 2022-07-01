@@ -32,13 +32,13 @@ node['apache']['sites'].each do |site, port_data|
     notifies :restart, "service[httpd]"
     end
   directory root_directory do 
-    mode "0775"
+    mode "0755"
     recursive true
   end
 
   template "#{root_directory}/index.html" do
     source "app.html.erb"
-    mode "0775"
+    mode "0755"
     variables(
       :site => site,
       :port => port_data["port"]
