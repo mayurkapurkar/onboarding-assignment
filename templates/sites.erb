@@ -3,7 +3,7 @@
 <% end -%>
 <VirtualHost *:<%= @port %>>
     ServerAdmin webmaster@localhost
-    ServerName <%=@site%>
+    ServerName <%=@site%>.ec2-75-101-237-61.compute-1.amazonaws.com
   DocumentRoot <%= @root_directory %>
     <Directory />
         Options FollowSymLinks
