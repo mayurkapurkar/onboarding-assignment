@@ -40,10 +40,9 @@ node['apache']['sites'].each do |site, port_data|
     source "app.html.erb"
     mode "0755"
     variables(
-      :site => site1,
+      :site => site,
       :port => port_data["port"]
     )
-    senitive :true
   end
 end
 
