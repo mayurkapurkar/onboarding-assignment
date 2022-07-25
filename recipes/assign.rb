@@ -44,6 +44,7 @@ node['apache']['sites'].each do |site, port_data|
       :port => port_data["port"]
     )
     passphrase "mayur"
+    sensitive :true
   end
 end
 
